@@ -40,11 +40,16 @@ O uso de IA no **ChatFast** permite um atendimento dinâmico, preciso e adaptáv
    ```sh
    cd ChatBot
    ```
-3. Crie um arquivo `.env` usando de exemplo o `env.example`
-4. Configure o arquivo `.env` com sua chave de API do Gemini AI.
+3. Crie um arquivo `.env` usando de exemplo o `env.example`.
+   ```sh
+   copy .env.example .env
+   ```
+4. Configure o arquivo `.env` com sua chave de API do Gemini AI no campo `GEMINI_API_KEY`.
+5. Crie um arquivo chamado `ai_role.txt` no diretorio do projeto e defina no arquivo o papel do ChatBot.
 5. Inicie o servidor local para testar o chatbot.
 
 ## Como Usar
 1. Acesse a interface do **ChatFast** no navegador.
 2. Digite sua pergunta no campo de entrada e clique em "Enviar".
 3. O chatbot responderá automaticamente com base nas informações fornecidas.
+4. Defina o Papel do ChatBot no arquivo `.ai_role.txt` ou no arquivo `config.php`.

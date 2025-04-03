@@ -24,6 +24,29 @@ function getGeminiApiKey() {
     return $apiKey;
 }
 
+// AI Role configuration
+function getAIRole() {
+    // First check for environment variable
+    $role = getenv('AI_ROLE');
+    
+    // If not found, check for a session variable
+    if (!$role && isset($_SESSION['AI_ROLE'])) {
+        $role = $_SESSION['AI_ROLE'];
+    }
+    
+    // If still not found or empty, load from file
+    if (!$role) {
+        $roleFile = __DIR__ . '/ai_role.txt';
+        if (file_exists($roleFile)) {
+            $role = file_get_contents($roleFile);
+        } else {
+            $role = 'Você é um assistente de um marketplace.'; // Default empty role
+        }
+    }
+    
+    return $role;
+}
+
 // Application configuration
 define('DEBUG_MODE', getenv('DEBUG_MODE') === 'true');
 define('MAX_HISTORY', getenv('MAX_HISTORY') ? (int)getenv('MAX_HISTORY') : 10);

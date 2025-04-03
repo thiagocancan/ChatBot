@@ -29,8 +29,11 @@ if (!$apiKey) {
     exit;
 }
 
-// Initialize the chatbot with the Gemini API key
-$chatbot = new Chatbot($apiKey);
+// Get the AI role
+$aiRole = getAIRole();
+
+// Initialize the chatbot with the Gemini API key and role
+$chatbot = new Chatbot($apiKey, $aiRole);
 
 // Process the user message
 if (isset($_POST['user_message'])) {

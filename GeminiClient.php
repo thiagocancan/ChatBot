@@ -5,7 +5,7 @@
 class GeminiClient {
     private $apiKey;
     private $apiEndpoint;
-    private $model = 'gemini-1.5-pro'; // Using Gemini 1.5 Pro model
+    private $model = 'gemini-1.5-flash'; // Default model
     
     /**
      * Constructor
@@ -82,7 +82,9 @@ class GeminiClient {
         $responseData = json_decode($response, true);
         
         // Add debug logging
-        error_log('Gemini API Response: ' . print_r($responseData, true));
+        if (defined('DEBUG_MODE') && DEBUG_MODE) {
+            error_log('Gemini API Response: ' . print_r($responseData, true));
+        }
         
         // Check for API errors
         if (isset($responseData['error'])) {

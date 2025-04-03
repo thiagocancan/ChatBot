@@ -8,14 +8,17 @@ require_once 'Message.php';
 class Chatbot {
     private $geminiClient;
     private $conversation = [];
+    private $aiRole;
     
     /**
      * Constructor
      * 
      * @param string $apiKey Gemini API key
+     * @param string $aiRole The role/system prompt for the AI
      */
-    public function __construct(string $apiKey) {
+    public function __construct(string $apiKey, string $aiRole = '') {
         $this->geminiClient = new GeminiClient($apiKey);
+        $this->aiRole = $aiRole;
         
         // Start a session to store conversation history
         if (session_status() === PHP_SESSION_NONE) {
@@ -25,9 +28,25 @@ class Chatbot {
         // Initialize chat history if not exists
         if (!isset($_SESSION['chat_history'])) {
             $_SESSION['chat_history'] = [];
+            
+            // If AI role is defined, add it as the first system message
+            if (!empty($this->aiRole)) {
+                $this->initializeWithRole();
+            }
         }
         
         $this->conversation = $_SESSION['chat_history'];
+    }
+    
+    /**
+     * Initialize the conversation with the AI role
+     */
+    private function initializeWithRole(): void {
+        // Create a system message with the AI role
+        $roleMessage = new Message('model', $this->aiRole);
+        
+        // Add to conversation history
+        $this->addMessageToConversation($roleMessage);
     }
     
     /**
@@ -71,6 +90,11 @@ class Chatbot {
     public function clearConversation(): void {
         $this->conversation = [];
         $_SESSION['chat_history'] = [];
+        
+        // Re-initialize with role if defined
+        if (!empty($this->aiRole)) {
+            $this->initializeWithRole();
+        }
     }
     
     /**
