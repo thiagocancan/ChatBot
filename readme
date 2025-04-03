@@ -1,0 +1,50 @@
+# ChatFast - Chatbot de Atendimento Inteligente
+
+## Descrição Geral
+O **ChatFast** é um chatbot de atendimento inteligente alimentado por Inteligência Artificial, desenvolvido para responder perguntas frequentes e auxiliar usuários de uma empresa ou instituição. Ele proporciona um atendimento ágil e eficiente, reduzindo a carga de trabalho humano e otimizando a experiência do usuário.
+
+## Objetivo do Projeto
+Criar uma solução automatizada de atendimento ao cliente, baseada em IA, que permita uma interação fluida, ágil e eficiente para atender a demandas frequentes de usuários.
+
+## Público-Alvo
+O **ChatFast** pode ser utilizado por:
+- Pequenos, médios e grandes negócios
+- Instituições educacionais
+- Organizações governamentais
+- Qualquer entidade que necessite de um atendimento automatizado eficiente
+
+## Problema a Ser Resolvido
+Empresas frequentemente enfrentam dificuldades no atendimento ao cliente devido à alta demanda por suporte. O **ChatFast** visa resolver esse problema, proporcionando um atendimento rápido, fluido e automatizado, garantindo maior satisfação para os usuários.
+
+## Resumo da Solução
+O **ChatFast** utiliza um modelo de IA para compreender e responder perguntas de maneira contextualizada, reduzindo a necessidade de intervenção humana e melhorando a eficiência do atendimento.
+
+## Tecnologia Utilizada
+- **Linguagem:** PHP
+- **Frontend:** HTML, CSS, JavaScript
+- **Banco de Dados:** MySQL (ou outro compatível)
+- **Inteligência Artificial:** Gemini AI
+
+## Justificativa do Uso da IA
+O uso de IA no **ChatFast** permite um atendimento dinâmico, preciso e adaptável às necessidades dos usuários, proporcionando:
+- Respostas rápidas e precisas
+- Redução da carga de trabalho humano
+- Aprimoramento contínuo com base nas interações
+
+## Instalação e Configuração
+1. Clone este repositório:
+   ```sh
+   git clone https://github.com/thiagocancan/ChatBot.git
+   ```
+2. Navegue até o diretório do projeto:
+   ```sh
+   cd ChatBot
+   ```
+3. Crie um arquivo `.env` usando de exemplo o `env.example`
+4. Configure o arquivo `.env` com sua chave de API do Gemini AI.
+5. Inicie o servidor local para testar o chatbot.
+
+## Como Usar
+1. Acesse a interface do **ChatFast** no navegador.
+2. Digite sua pergunta no campo de entrada e clique em "Enviar".
+3. O chatbot responderá automaticamente com base nas informações fornecidas.
