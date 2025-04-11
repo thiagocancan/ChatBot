@@ -37,7 +37,7 @@ if (isset($_GET['clear']) && $_GET['clear'] === 'true') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini Chatbot</title>
+    <title>ChatFast</title>
     <link rel="stylesheet" href="static/css/index.css">
     <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
