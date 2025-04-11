@@ -1,23 +1,25 @@
 <?php
-require_once 'GeminiClient.php';
-require_once 'Message.php';
+require_once __DIR__ . '/interfaces/AIClientInterface.php';
+require_once __DIR__ . '/messages/UserMessage.php';
+require_once __DIR__ . '/messages/AIMessage.php';
+require_once __DIR__ . '/messages/SystemMessage.php';
 
 /**
  * Chatbot class that handles the conversation logic
  */
 class Chatbot {
-    private $geminiClient;
+    private $aiClient;
     private $conversation = [];
     private $aiRole;
     
     /**
      * Constructor
      * 
-     * @param string $apiKey Gemini API key
+     * @param AIClientInterface $aiClient The AI client to use
      * @param string $aiRole The role/system prompt for the AI
      */
-    public function __construct(string $apiKey, string $aiRole = '') {
-        $this->geminiClient = new GeminiClient($apiKey);
+    public function __construct(AIClientInterface $aiClient, string $aiRole = '') {
+        $this->aiClient = $aiClient;
         $this->aiRole = $aiRole;
         
         // Start a session to store conversation history
@@ -43,7 +45,7 @@ class Chatbot {
      */
     private function initializeWithRole(): void {
         // Create a system message with the AI role
-        $roleMessage = new Message('model', $this->aiRole);
+        $roleMessage = new SystemMessage($this->aiRole);
         
         // Add to conversation history
         $this->addMessageToConversation($roleMessage);
@@ -57,16 +59,16 @@ class Chatbot {
      */
     public function processMessage(string $userMessage): string {
         // Create a new user message
-        $message = new Message('user', $userMessage);
+        $message = new UserMessage($userMessage);
         
         // Add to conversation history
         $this->addMessageToConversation($message);
         
-        // Get response from Gemini
-        $aiResponse = $this->geminiClient->generateResponse($this->conversation);
+        // Get response from AI
+        $aiResponse = $this->aiClient->generateResponse($this->conversation);
         
         // Create a new AI message
-        $responseMessage = new Message('model', $aiResponse);
+        $responseMessage = new AIMessage($aiResponse);
         
         // Add to conversation history
         $this->addMessageToConversation($responseMessage);
@@ -77,9 +79,9 @@ class Chatbot {
     /**
      * Add a message to the conversation history
      * 
-     * @param Message $message The message to add
+     * @param AbstractMessage $message The message to add
      */
-    private function addMessageToConversation(Message $message): void {
+    private function addMessageToConversation(AbstractMessage $message): void {
         $this->conversation[] = $message->toArray();
         $_SESSION['chat_history'] = $this->conversation;
     }
@@ -104,5 +106,14 @@ class Chatbot {
      */
     public function getConversation(): array {
         return $this->conversation;
+    }
+    
+    /**
+     * Set the AI client
+     * 
+     * @param AIClientInterface $aiClient The AI client to use
+     */
+    public function setAIClient(AIClientInterface $aiClient): void {
+        $this->aiClient = $aiClient;
     }
 }

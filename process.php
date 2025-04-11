@@ -2,6 +2,7 @@
 // Process the user message and return the AI response
 require_once 'Chatbot.php';
 require_once 'config.php';
+require_once 'factory/AIClientFactory.php';
 
 // Enable error reporting for debugging
 if (DEBUG_MODE) {
@@ -14,8 +15,9 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Check if we have an API key
-$apiKey = getGeminiApiKey();
+// Get configuration
+$aiProvider = getAIProvider();
+$apiKey = getAPIKey($aiProvider);
 
 // If no API key is found, return an error
 if (!$apiKey) {
@@ -23,17 +25,19 @@ if (!$apiKey) {
     echo json_encode([
         'success' => false, 
         'error' => 'API key not configured',
-        'message' => 'Por favor, configure a chave da API Gemini antes de usar o chatbot.',
+        'message' => 'Por favor, configure a chave da API antes de usar o chatbot.',
         'setup_required' => true
     ]);
     exit;
 }
 
-// Get the AI role
 $aiRole = getAIRole();
 
-// Initialize the chatbot with the Gemini API key and role
-$chatbot = new Chatbot($apiKey, $aiRole);
+// Create AI client using the factory
+$aiClient = AIClientFactory::createClient($aiProvider, $apiKey);
+
+// Initialize the chatbot with the AI client and role
+$chatbot = new Chatbot($aiClient, $aiRole);
 
 // Process the user message
 if (isset($_POST['user_message'])) {

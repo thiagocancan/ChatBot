@@ -47,6 +47,39 @@ function getAIRole() {
     return $role;
 }
 
+/**
+ * Get the AI provider
+ * 
+ * @return string The AI provider (default: 'gemini')
+ */
+function getAIProvider() {
+    // First check for environment variable
+    $provider = getenv('AI_PROVIDER');
+    
+    // If not found, check for a session variable
+    if (!$provider && isset($_SESSION['AI_PROVIDER'])) {
+        $provider = $_SESSION['AI_PROVIDER'];
+    }
+    
+    // Default to 'gemini' if not specified
+    return $provider ?: 'gemini';
+}
+
+/**
+ * Get the API key for the specified provider
+ * 
+ * @param string $provider The AI provider
+ * @return string The API key
+ */
+function getAPIKey(string $provider) {
+    switch (strtolower($provider)) {
+        case 'gemini':
+            return getGeminiApiKey();
+        default:
+            return '';
+    }
+}
+
 // Application configuration
 define('DEBUG_MODE', getenv('DEBUG_MODE') === 'true');
 define('MAX_HISTORY', getenv('MAX_HISTORY') ? (int)getenv('MAX_HISTORY') : 10);
