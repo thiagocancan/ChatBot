@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard | Assistente Virtual</title>
+  <link rel="stylesheet" href="/front end/dash.css" />
+</head>
+<body>
+  <header>
+    <h1>Dashboard Analítico</h1>
+  </header>
+
+  <main class="dashboard">
+    <section class="card" id="ia-uso">
+      <h2>Uso da IA</h2>
+      <p class="value" id="ia-count">0</p>
+      <span class="desc">Respostas geradas por usuário</span>
+    </section>
+
+    <section class="card" id="acessos">
+      <h2>Acessos Diários</h2>
+      <p class="value" id="access-count">0</p>
+      <span class="desc">Número de acessos hoje</span>
+    </section>
+
+    <section class="card full-width" id="historico">
+      <h2>Histórico de Mensagens</h2>
+      <ul id="mensagens">
+       
+      </ul>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Assistente Virtual</p>
+  </footer>
+
+  <script src="dash.js"></script>
+</body>
+</html>
