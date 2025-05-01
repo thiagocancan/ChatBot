@@ -1,12 +1,18 @@
 <?php
+// Redirect to login page if not logged in
+require_once 'auth/Auth.php';
+
+$auth = new Auth();
+
+// If not logged in, redirect to login page
+if (!$auth->isLoggedIn()) {
+    header('Location: auth/login.php');
+    exit;
+}
 
 require_once 'Chatbot.php';
 require_once 'config.php';
 require_once 'factory/AIClientFactory.php';
-
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
 
 // Get configuration
 $aiProvider = getAIProvider();
@@ -19,13 +25,17 @@ if (!$apiConfigured) {
 }
 
 $aiRole = getAIRole();
+$userId = $auth->getUserId();
+$username = $auth->getUsername();
+$isAdmin = $auth->isAdmin();
 
 // Create AI client using the factory
 $aiClient = AIClientFactory::createClient($aiProvider, $apiKey);
 
-// Create chatbot with the AI client
-$chatbot = new Chatbot($aiClient, $aiRole);
+// Create chatbot with the AI client, role, and user ID
+$chatbot = new Chatbot($aiClient, $aiRole, $userId);
 
+// Handle conversation clearing
 if (isset($_GET['clear']) && $_GET['clear'] === 'true') {
     $chatbot->clearConversation();
     header('Location: index.php');
@@ -37,45 +47,45 @@ if (isset($_GET['clear']) && $_GET['clear'] === 'true') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChatFast</title>
+    <title>ChatFast - Chatbot de Atendimento Inteligente</title>
     <link rel="stylesheet" href="static/css/index.css">
-    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div style="width:50%; margin:0 auto;">
-
+    <h1>ChatFast - Chatbot de Atendimento Inteligente</h1>
     
-        <h1>ChatFast - Chatbot de Atendimento Inteligente</h1>
-        
-        <div class="header-actions">
-            <div class="action-buttons">
-                <a href="?clear=true" class="clear-btn button">Limpar Conversa</a>
-                <a href="templates/setup.php" class="settings-btn button">Configurações</a>
-            </div>
+    <div class="header-actions">
+        <div class="user-info">
+            <span>Olá, <?php echo htmlspecialchars($username); ?>!</span>
+            <a href="auth/logout.php" class="button logout-btn">Sair</a>
         </div>
-        
-        <div class="chat-container" id="chat-container">
-            <?php
-            if (isset($_SESSION['chat_history'])) {
-                foreach ($_SESSION['chat_history'] as $index => $message) {
-                    if ($index === 0 && $message['role'] === 'system') {
-                        continue;
-                    }
-                    
-                    $class = $message['role'] === 'user' ? 'user-message' : 'bot-message';
-                    echo "<div class='contorno'><div class='message {$class}'>{$message['content']}</div></div>";
-                }
-            }
-            ?>
+        <div class="action-buttons">
+            <a href="?clear=true" class="clear-btn button">Limpar Conversa</a>
+            <?php if ($isAdmin): ?>
+            <a href="templates/setup.php" class="settings-btn button">Configurações</a>
+            <?php endif; ?>
         </div>
-        
-        <form method="post" action="" id="chat-form">
-            <div class="input-container">
-                <input type="text" id="user-input" name="user_message" placeholder="Digite sua mensagem aqui..." autocomplete="off" required>
-                <button type="submit">Enviar</button>
-            </div>
-        </form>
     </div>
+    
+    <div class="chat-container" id="chat-container">
+        <?php
+        $conversation = $chatbot->getConversation();
+        foreach ($conversation as $index => $message) {
+            if ($index === 0 && $message['role'] === 'system') {
+                continue;
+            }
+            
+            $class = $message['role'] === 'user' ? 'user-message' : 'bot-message';
+            echo "<div class='message {$class}'>{$message['content']}</div>";
+        }
+        ?>
+    </div>
+    
+    <form method="post" action="" id="chat-form">
+        <div class="input-container">
+            <input type="text" id="user-input" name="user_message" placeholder="Digite sua mensagem aqui..." autocomplete="off" required>
+            <button type="submit">Enviar</button>
+        </div>
+    </form>
 
     <script>
         document.getElementById('chat-form').addEventListener('submit', async function(e) {
@@ -85,7 +95,7 @@ if (isset($_GET['clear']) && $_GET['clear'] === 'true') {
             if (!userInput.trim()) return;
 
             const chatContainer = document.getElementById('chat-container');
-            chatContainer.innerHTML += `<div class='contorno'><div class="message user-message">${userInput}</div></div>`;
+            chatContainer.innerHTML += `<div class="message user-message">${userInput}</div>`;
             
             document.getElementById('user-input').value = '';
             
@@ -114,7 +124,7 @@ if (isset($_GET['clear']) && $_GET['clear'] === 'true') {
                 }
                 
                 if (data.success) {
-                    chatContainer.innerHTML += `<div class='contorno'><div class="message bot-message">${data.response}</div></div>`;
+                    chatContainer.innerHTML += `<div class="message bot-message">${data.response}</div>`;
                 } else {
                     console.error('Error:', data.error);
                     chatContainer.innerHTML += `<div class="message bot-message">Erro: ${data.message || 'Ocorreu um erro ao processar sua mensagem.'}</div>`;
