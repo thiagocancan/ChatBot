@@ -3,6 +3,7 @@
 require_once 'Chatbot.php';
 require_once 'config.php';
 require_once 'factory/AIClientFactory.php';
+require_once 'auth/Auth.php';
 
 // Enable error reporting for debugging
 if (DEBUG_MODE) {
@@ -13,6 +14,21 @@ if (DEBUG_MODE) {
 // Start session if not already started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
+}
+
+// Initialize authentication
+$auth = new Auth();
+
+// Check if user is logged in
+if (!$auth->isLoggedIn()) {
+    header('Content-Type: application/json');
+    echo json_encode([
+        'success' => false, 
+        'error' => 'User not logged in',
+        'message' => 'Por favor, faça login para continuar.',
+        'redirect' => 'auth/login.php'
+    ]);
+    exit;
 }
 
 // Get configuration
@@ -32,12 +48,13 @@ if (!$apiKey) {
 }
 
 $aiRole = getAIRole();
+$userId = $auth->getUserId();
 
 // Create AI client using the factory
 $aiClient = AIClientFactory::createClient($aiProvider, $apiKey);
 
-// Initialize the chatbot with the AI client and role
-$chatbot = new Chatbot($aiClient, $aiRole);
+// Initialize the chatbot with the AI client, role, and user ID
+$chatbot = new Chatbot($aiClient, $aiRole, $userId);
 
 // Process the user message
 if (isset($_POST['user_message'])) {
@@ -53,7 +70,10 @@ if (isset($_POST['user_message'])) {
         
         // Ensure we're sending a valid JSON response
         header('Content-Type: application/json');
-        echo json_encode(['success' => true, 'response' => $response]);
+        echo json_encode([
+            'success' => true, 
+            'response' => $response
+        ]);
     } catch (Exception $e) {
         // Log the error
         error_log('Chatbot error: ' . $e->getMessage());
