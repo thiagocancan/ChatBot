@@ -1,10 +1,10 @@
 <?php
-// Redirect to login page if not logged in
+// Redirecionar para a página de login se não estiver logado
 require_once 'auth/Auth.php';
 
 $auth = new Auth();
 
-// If not logged in, redirect to login page
+// Se não estiver logado, redirecionar para a página de login
 if (!$auth->isLoggedIn()) {
     header('Location: auth/login.php');
     exit;
@@ -14,7 +14,7 @@ require_once 'Chatbot.php';
 require_once 'config.php';
 require_once 'factory/AIClientFactory.php';
 
-// Get configuration
+// Obter configurações
 $aiProvider = getAIProvider();
 $apiKey = getAPIKey($aiProvider);
 $apiConfigured = !empty($apiKey);
@@ -29,13 +29,13 @@ $userId = $auth->getUserId();
 $username = $auth->getUsername();
 $isAdmin = $auth->isAdmin();
 
-// Create AI client using the factory
+// Criar cliente de IA usando a fábrica
 $aiClient = AIClientFactory::createClient($aiProvider, $apiKey);
 
-// Create chatbot with the AI client, role, and user ID
+// Criar chatbot com o cliente de IA, papel e ID do usuário
 $chatbot = new Chatbot($aiClient, $aiRole, $userId);
 
-// Handle conversation clearing
+// Lidar com a limpeza da conversa
 if (isset($_GET['clear']) && $_GET['clear'] === 'true') {
     $chatbot->clearConversation();
     header('Location: index.php');
@@ -43,7 +43,7 @@ if (isset($_GET['clear']) && $_GET['clear'] === 'true') {
 }
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -113,7 +113,7 @@ if (isset($_GET['clear']) && $_GET['clear'] === 'true') {
                 document.getElementById('loading-message').remove();
                 
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    throw new Error(`Erro HTTP! status: ${response.status}`);
                 }
                 
                 const data = await response.json();
@@ -126,14 +126,14 @@ if (isset($_GET['clear']) && $_GET['clear'] === 'true') {
                 if (data.success) {
                     chatContainer.innerHTML += `<div class="message bot-message">${data.response}</div>`;
                 } else {
-                    console.error('Error:', data.error);
+                    console.error('Erro:', data.error);
                     chatContainer.innerHTML += `<div class="message bot-message">Erro: ${data.message || 'Ocorreu um erro ao processar sua mensagem.'}</div>`;
                 }
             } catch (error) {
                 const loadingMessage = document.getElementById('loading-message');
                 if (loadingMessage) loadingMessage.remove();
                 
-                console.error('Error:', error);
+                console.error('Erro:', error);
                 chatContainer.innerHTML += `<div class="message bot-message">Desculpe, ocorreu um erro ao processar sua solicitação. Verifique o console para mais detalhes.</div>`;
             }
             

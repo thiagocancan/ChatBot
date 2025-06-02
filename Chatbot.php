@@ -6,7 +6,7 @@ require_once __DIR__ . '/messages/SystemMessage.php';
 require_once __DIR__ . '/models/Message.php';
 
 /**
- * Chatbot class that handles the conversation logic
+ * Classe Chatbot que gerencia a lógica da conversa
  */
 class Chatbot {
     private $aiClient;
@@ -16,11 +16,11 @@ class Chatbot {
     private $messageModel;
     
     /**
-     * Constructor
+     * Construtor
      * 
-     * @param AIClientInterface $aiClient The AI client to use
-     * @param string $aiRole The role/system prompt for the AI
-     * @param int|null $userId The user ID (null for guest users)
+     * @param AIClientInterface $aiClient O cliente de IA a ser usado
+     * @param string $aiRole O papel / prompt do sistema para a IA
+     * @param int|null $userId O ID do usuário (null para usuários convidados)
      */
     public function __construct(AIClientInterface $aiClient, string $aiRole = '', ?int $userId = null) {
         $this->aiClient = $aiClient;
@@ -28,33 +28,33 @@ class Chatbot {
         $this->userId = $userId;
         $this->messageModel = new Message();
         
-        // Start a session to store conversation history for guests
+        // Iniciar uma sessão para armazenar o histórico de conversas de convidados
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
         
-        // Initialize conversation
+        // Inicializar a conversa
         $this->initializeConversation();
     }
     
     /**
-     * Initialize the conversation
+     * Inicializar a conversa
      */
     private function initializeConversation(): void {
-        // If user is logged in, load messages from database
+        // Se o usuário estiver logado, carregar mensagens do banco de dados
         if ($this->userId) {
             $this->loadMessagesFromDatabase();
             
-            // Check if we need to add the system message
+            // Verificar se precisamos adicionar a mensagem do sistema
             if (!empty($this->aiRole) && empty($this->conversation)) {
                 $this->initializeWithRole();
             }
         } else {
-            // For guest users, use session-based conversation
+            // Para usuários convidados, usar conversa baseada em sessão
             if (!isset($_SESSION['chat_history'])) {
                 $_SESSION['chat_history'] = [];
                 
-                // If AI role is defined, add it as the first system message
+                // Se o papel da IA estiver definido, adicioná-lo como a primeira mensagem do sistema
                 if (!empty($this->aiRole)) {
                     $roleMessage = new SystemMessage($this->aiRole);
                     $_SESSION['chat_history'][] = $roleMessage->toArray();
@@ -66,13 +66,13 @@ class Chatbot {
     }
     
     /**
-     * Load messages from database
+     * Carregar mensagens do banco de dados
      */
     private function loadMessagesFromDatabase(): void {
-        // Get all messages for this user
+        // Obter todas as mensagens para este usuário
         $messages = $this->messageModel->getByUser($this->userId);
         
-        // Convert to the format expected by the AI client
+        // Converter para o formato esperado pelo cliente de IA
         $this->conversation = [];
         foreach ($messages as $message) {
             $this->conversation[] = [
@@ -83,15 +83,15 @@ class Chatbot {
     }
     
     /**
-     * Initialize the conversation with the AI role
+     * Inicializar a conversa com o papel da IA
      */
     private function initializeWithRole(): void {
-        // Create a system message with the AI role
+        // Criar uma mensagem do sistema com o papel da IA
         $roleMessage = new SystemMessage($this->aiRole);
         
-        // Add to conversation history
+        // Adicionar ao histórico da conversa
         if ($this->userId) {
-            // Store in database
+            // Armazenar no banco de dados
             $this->messageModel->create(
                 $this->userId,
                 $roleMessage->getRole(),
@@ -99,45 +99,45 @@ class Chatbot {
             );
         }
         
-        // Add to in-memory conversation
+        // Adicionar à conversa em memória
         $this->conversation[] = $roleMessage->toArray();
     }
     
     /**
-     * Process a user message and get a response from the AI
+     * Processar uma mensagem do usuário e obter uma resposta da IA
      * 
-     * @param string $userMessage The message from the user
-     * @return string The AI's response
+     * @param string $userMessage A mensagem do usuário
+     * @return string A resposta da IA
      */
     public function processMessage(string $userMessage): string {
-        // Create a new user message
+        // Criar uma nova mensagem do usuário
         $message = new UserMessage($userMessage);
         
-        // Add to conversation history
+        // Adicionar ao histórico da conversa
         $this->addMessageToConversation($message);
         
-        // Get response from AI
+        // Obter resposta da IA
         $aiResponse = $this->aiClient->generateResponse($this->conversation);
         
-        // Create a new AI message
+        // Criar uma nova mensagem da IA
         $responseMessage = new AIMessage($aiResponse);
         
-        // Add to conversation history
+        // Adicionar ao histórico da conversa
         $this->addMessageToConversation($responseMessage);
         
         return $aiResponse;
     }
     
     /**
-     * Add a message to the conversation history
+     * Adicionar uma mensagem ao histórico da conversa
      * 
-     * @param AbstractMessage $message The message to add
+     * @param AbstractMessage $message A mensagem a ser adicionada
      */
     private function addMessageToConversation(AbstractMessage $message): void {
-        // Add to in-memory conversation
+        // Adicionar à conversa em memória
         $this->conversation[] = $message->toArray();
         
-        // Store in database if user is logged in
+        // Armazenar no banco de dados se o usuário estiver logado
         if ($this->userId) {
             $this->messageModel->create(
                 $this->userId,
@@ -145,30 +145,30 @@ class Chatbot {
                 $message->getContent()
             );
         } else {
-            // Store in session for guest users
+            // Armazenar na sessão para usuários convidados
             $_SESSION['chat_history'] = $this->conversation;
         }
     }
     
     /**
-     * Clear the conversation history
+     * Limpar o histórico da conversa
      */
     public function clearConversation(): void {
         $this->conversation = [];
         
-        // Clear database conversation if applicable
+        // Limpar a conversa no banco de dados se aplicável
         if ($this->userId) {
             $this->messageModel->deleteByUser($this->userId);
             
-            // Re-initialize with role if defined
+            // Re-inicializar com o papel, se definido
             if (!empty($this->aiRole)) {
                 $this->initializeWithRole();
             }
         } else {
-            // Clear session for guest users
+            // Limpar a sessão para usuários convidados
             $_SESSION['chat_history'] = [];
             
-            // Re-initialize with role if defined
+            // Re-inicializar com o papel, se definido
             if (!empty($this->aiRole)) {
                 $roleMessage = new SystemMessage($this->aiRole);
                 $_SESSION['chat_history'][] = $roleMessage->toArray();
@@ -178,27 +178,27 @@ class Chatbot {
     }
     
     /**
-     * Get the current conversation history
+     * Obter o histórico atual da conversa
      * 
-     * @return array The conversation history
+     * @return array O histórico da conversa
      */
     public function getConversation(): array {
         return $this->conversation;
     }
     
     /**
-     * Set the AI client
+     * Definir o cliente de IA
      * 
-     * @param AIClientInterface $aiClient The AI client to use
+     * @param AIClientInterface $aiClient O cliente de IA a ser usado
      */
     public function setAIClient(AIClientInterface $aiClient): void {
         $this->aiClient = $aiClient;
     }
     
     /**
-     * Set the user ID
+     * Definir o ID do usuário
      * 
-     * @param int $userId The user ID
+     * @param int $userId O ID do usuário
      */
     public function setUserId(int $userId): void {
         $this->userId = $userId;

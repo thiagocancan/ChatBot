@@ -1,22 +1,22 @@
 <?php
 /**
- * Configuration file for the chatbot
+ * Arquivo de configuração do chatbot
  * 
- * This file loads environment variables from .env file
- * and provides configuration for the application
+ * Este arquivo carrega variáveis de ambiente do arquivo .env
+ * e fornece a configuração para o aplicativo
  */
 
-// Load environment variables from .env file
+// Carregar variáveis de ambiente do arquivo .env
 require_once __DIR__ . '/DotEnv.php';
 $dotenv = new DotEnv(__DIR__ . '/.env');
 $dotenv->load();
 
-// Gemini API configuration
+// Configuração da API Gemini
 function getGeminiApiKey() {
-    // First check for environment variable (for production/hosting environments)
+    // Primeiro verifica a variável de ambiente (para produção/hospedagem)
     $apiKey = getenv('GEMINI_API_KEY');
     
-    // If not found and we're in development, check for a session variable
+    // Se não encontrado e estivermos em desenvolvimento, verifica uma variável de sessão
     if (!$apiKey && isset($_SESSION['GEMINI_API_KEY'])) {
         $apiKey = $_SESSION['GEMINI_API_KEY'];
     }
@@ -24,23 +24,23 @@ function getGeminiApiKey() {
     return $apiKey;
 }
 
-// AI Role configuration
+// Configuração do papel da IA
 function getAIRole() {
-    // First check for environment variable
+    // Primeiro verifica a variável de ambiente
     $role = getenv('AI_ROLE');
     
-    // If not found, check for a session variable
+    // Se não encontrado, verifica uma variável de sessão
     if (!$role && isset($_SESSION['AI_ROLE'])) {
         $role = $_SESSION['AI_ROLE'];
     }
     
-    // If still not found or empty, load from file
+    // Se ainda não encontrado ou vazio, carrega de um arquivo
     if (!$role) {
         $roleFile = __DIR__ . '/ai_role.txt';
         if (file_exists($roleFile)) {
             $role = file_get_contents($roleFile);
         } else {
-            $role = 'Você é um assistente de um marketplace.'; // Default empty role
+            $role = 'Você é um assistente de um marketplace.'; // Papel padrão vazio
         }
     }
     
@@ -48,28 +48,28 @@ function getAIRole() {
 }
 
 /**
- * Get the AI provider
+ * Obter o provedor de IA
  * 
- * @return string The AI provider (default: 'gemini')
+ * @return string O provedor de IA (padrão: 'gemini')
  */
 function getAIProvider() {
-    // First check for environment variable
+    // Primeiro verifica a variável de ambiente
     $provider = getenv('AI_PROVIDER');
     
-    // If not found, check for a session variable
+    // Se não encontrado, verifica uma variável de sessão
     if (!$provider && isset($_SESSION['AI_PROVIDER'])) {
         $provider = $_SESSION['AI_PROVIDER'];
     }
     
-    // Default to 'gemini' if not specified
+    // Padrão para 'gemini' se não especificado
     return $provider ?: 'gemini';
 }
 
 /**
- * Get the API key for the specified provider
+ * Obter a chave de API para o provedor especificado
  * 
- * @param string $provider The AI provider
- * @return string The API key
+ * @param string $provider O provedor de IA
+ * @return string A chave de API
  */
 function getAPIKey(string $provider) {
     switch (strtolower($provider)) {
@@ -80,6 +80,6 @@ function getAPIKey(string $provider) {
     }
 }
 
-// Application configuration
+// Configuração da aplicação
 define('DEBUG_MODE', getenv('DEBUG_MODE') === 'true');
 define('MAX_HISTORY', getenv('MAX_HISTORY') ? (int)getenv('MAX_HISTORY') : 10);

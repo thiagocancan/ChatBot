@@ -1,46 +1,46 @@
 <?php
-// Process the user message and return the AI response
+// Processa a mensagem do usuário e retorna a resposta da IA
 require_once 'Chatbot.php';
 require_once 'config.php';
 require_once 'factory/AIClientFactory.php';
 require_once 'auth/Auth.php';
 
-// Enable error reporting for debugging
+// Ativa a exibição de erros para depuração
 if (DEBUG_MODE) {
     ini_set('display_errors', 1);
     error_reporting(E_ALL);
 }
 
-// Start session if not already started
+// Inicia a sessão, se ainda não estiver iniciada
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Initialize authentication
+// Inicializa a autenticação
 $auth = new Auth();
 
-// Check if user is logged in
+// Verifica se o usuário está logado
 if (!$auth->isLoggedIn()) {
     header('Content-Type: application/json');
     echo json_encode([
         'success' => false, 
-        'error' => 'User not logged in',
+        'error' => 'Usuário não está logado',
         'message' => 'Por favor, faça login para continuar.',
         'redirect' => 'auth/login.php'
     ]);
     exit;
 }
 
-// Get configuration
+// Obtém a configuração
 $aiProvider = getAIProvider();
 $apiKey = getAPIKey($aiProvider);
 
-// If no API key is found, return an error
+// Se a chave da API não estiver configurada, retorna erro
 if (!$apiKey) {
     header('Content-Type: application/json');
     echo json_encode([
         'success' => false, 
-        'error' => 'API key not configured',
+        'error' => 'Chave da API não configurada',
         'message' => 'Por favor, configure a chave da API antes de usar o chatbot.',
         'setup_required' => true
     ]);
@@ -50,35 +50,35 @@ if (!$apiKey) {
 $aiRole = getAIRole();
 $userId = $auth->getUserId();
 
-// Create AI client using the factory
+// Cria o cliente de IA usando a fábrica
 $aiClient = AIClientFactory::createClient($aiProvider, $apiKey);
 
-// Initialize the chatbot with the AI client, role, and user ID
+// Inicializa o chatbot com o cliente de IA, a função e o ID do usuário
 $chatbot = new Chatbot($aiClient, $aiRole, $userId);
 
-// Process the user message
+// Processa a mensagem do usuário
 if (isset($_POST['user_message'])) {
     $userMessage = $_POST['user_message'];
     
     try {
         $response = $chatbot->processMessage($userMessage);
         
-        // Log the response for debugging
+        // Loga a resposta para depuração
         if (DEBUG_MODE) {
-            error_log('Chatbot response: ' . $response);
+            error_log('Resposta do chatbot: ' . $response);
         }
         
-        // Ensure we're sending a valid JSON response
+        // Garante que estamos enviando uma resposta JSON válida
         header('Content-Type: application/json');
         echo json_encode([
             'success' => true, 
             'response' => $response
         ]);
     } catch (Exception $e) {
-        // Log the error
-        error_log('Chatbot error: ' . $e->getMessage());
+        // Loga o erro
+        error_log('Erro no chatbot: ' . $e->getMessage());
         
-        // Send error response
+        // Envia resposta de erro
         header('Content-Type: application/json');
         echo json_encode([
             'success' => false, 
@@ -88,5 +88,5 @@ if (isset($_POST['user_message'])) {
     }
 } else {
     header('Content-Type: application/json');
-    echo json_encode(['success' => false, 'error' => 'No message provided']);
+    echo json_encode(['success' => false, 'error' => 'Nenhuma mensagem fornecida']);
 }
