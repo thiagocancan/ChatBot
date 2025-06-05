@@ -67,6 +67,11 @@ Este script irá:
 
 **IMPORTANTE**: Anote a senha do administrador que será exibida no console após a execução do script.
 
+### 4 Defina o papel da IA
+
+- Crie um arquivo chamado ai_role.txt no diretorio do projeto
+- Dentro do arquivo txt defina o texto é ser usado como papel para a IA
+
 ### 4 Inicialize o sistema
 
 Usando o Xampp ou da forma que preferir, execute o apache e o mysql.
