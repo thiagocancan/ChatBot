@@ -62,6 +62,7 @@ if (isset($_GET['clear']) && $_GET['clear'] === 'true') {
             <a href="?clear=true" class="clear-btn button">Limpar Conversa</a>
             <?php if ($isAdmin): ?>
             <a href="templates/setup.php" class="settings-btn button">Configurações</a>
+            <a href="templates/dashboard.php" class="dashboard-btn button">Dashboard</a>
             <?php endif; ?>
         </div>
     </div>

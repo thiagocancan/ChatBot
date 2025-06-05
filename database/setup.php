@@ -62,6 +62,18 @@ try {
     ");
     echo "Table 'messages' created or already exists.\n";
     
+    // Create access_logs table for tracking user logins
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS `access_logs` (
+            `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            `user_id` INT UNSIGNED NOT NULL,
+            `access_time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            `ip_address` VARCHAR(45) NULL,
+            FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ");
+    echo "Table 'access_logs' created or already exists.\n";
+    
     // Check if admin user exists
     $stmt = $pdo->prepare("SELECT COUNT(*) FROM `users` WHERE `role` = 'admin'");
     $stmt->execute();
