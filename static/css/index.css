@@ -52,6 +52,11 @@ h1 {
   color: white;
 }
 
+.dashboard-btn {
+  background-color: #3b82f6;
+  color: white;
+}
+
 .login-btn {
   background-color: #2196f3;
   color: white;

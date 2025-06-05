@@ -61,10 +61,33 @@ class Auth {
             $_SESSION['username'] = $user['username'];
             $_SESSION['role'] = $user['role'];
             
+            // Log this access
+            $this->logAccess($user['id']);
+            
             return true;
         }
         
         return false;
+    }
+    
+    /**
+     * Log user access
+     * 
+     * @param int $userId User ID
+     */
+    private function logAccess(int $userId): void {
+        try {
+            $db = Database::getInstance();
+            $ipAddress = $_SERVER['REMOTE_ADDR'] ?? null;
+            
+            $db->query(
+                "INSERT INTO `access_logs` (`user_id`, `ip_address`) VALUES (?, ?)",
+                [$userId, $ipAddress]
+            );
+        } catch (Exception $e) {
+            // Just log the error but don't interrupt the login process
+            error_log('Failed to log access: ' . $e->getMessage());
+        }
     }
     
     /**
