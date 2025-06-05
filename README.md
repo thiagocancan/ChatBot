@@ -38,8 +38,8 @@ O objetivo principal do ChatFast é fornecer uma plataforma de atendimento autom
 
 ### 1. Clone o repositório
 ```bash
-git clone https://github.com/seu-usuario/chatfast.git
-cd chatfast
+git clone https://github.com/thiagocancan/ChatBot.git
+cd chatbot
 ```
 
 ### 2. Configure o arquivo .env
