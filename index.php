@@ -1,145 +1,56 @@
 <?php
-// Redirect to login page if not logged in
-require_once 'auth/Auth.php';
+/**
+ * Application Entry Point for XAMPP/LAMPP
+ */
 
-$auth = new Auth();
+// Set error reporting for development
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
-// If not logged in, redirect to login page
-if (!$auth->isLoggedIn()) {
-    header('Location: auth/login.php');
-    exit;
+// Start session
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
 }
 
-require_once 'Chatbot.php';
-require_once 'config.php';
-require_once 'factory/AIClientFactory.php';
+// Load configuration
+require_once __DIR__ . '/config/app.php';
 
-// Get configuration
-$aiProvider = getAIProvider();
-$apiKey = getAPIKey($aiProvider);
-$apiConfigured = !empty($apiKey);
+// Load core classes
+require_once __DIR__ . '/core/Router.php';
 
-if (!$apiConfigured) {
-    header('Location: templates/setup.php');
+// Get the route from URL
+$route = $_GET['route'] ?? '/';
+
+// Initialize router
+$router = new Router();
+
+// Define routes
+$router->get('/', 'HomeController', 'index');
+$router->post('/process', 'HomeController', 'processMessage');
+
+$router->get('/auth/login', 'AuthController', 'login');
+$router->post('/auth/login', 'AuthController', 'login');
+$router->get('/auth/register', 'AuthController', 'register');
+$router->post('/auth/register', 'AuthController', 'register');
+$router->get('/auth/logout', 'AuthController', 'logout');
+
+$router->get('/admin/setup', 'AdminController', 'setup');
+$router->post('/admin/setup', 'AdminController', 'setup');
+$router->get('/admin/dashboard', 'AdminController', 'dashboard');
+
+// Dispatch the request
+try {
+    $router->dispatch($route);
+} catch (Exception $e) {
+    // Handle errors gracefully
+    if (DEBUG_MODE) {
+        echo "<h1>Error</h1>";
+        echo "<p>" . $e->getMessage() . "</p>";
+        echo "<pre>" . $e->getTraceAsString() . "</pre>";
+    } else {
+        echo "<h1>Oops! Algo deu errado.</h1>";
+        echo "<p>Por favor, tente novamente mais tarde.</p>";
+        echo "<a href='/chatfast/'>Voltar ao início</a>";
+    }
     exit;
 }
-
-$aiRole = getAIRole();
-$userId = $auth->getUserId();
-$username = $auth->getUsername();
-$isAdmin = $auth->isAdmin();
-
-// Create AI client using the factory
-$aiClient = AIClientFactory::createClient($aiProvider, $apiKey);
-
-// Create chatbot with the AI client, role, and user ID
-$chatbot = new Chatbot($aiClient, $aiRole, $userId);
-
-// Handle conversation clearing
-if (isset($_GET['clear']) && $_GET['clear'] === 'true') {
-    $chatbot->clearConversation();
-    header('Location: index.php');
-    exit;
-}
-?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChatFast - Chatbot de Atendimento Inteligente</title>
-    <link rel="stylesheet" href="static/css/index.css">
-</head>
-<body>
-    <h1>ChatFast - Chatbot de Atendimento Inteligente</h1>
-    
-    <div class="header-actions">
-        <div class="user-info">
-            <span>Olá, <?php echo htmlspecialchars($username); ?>!</span>
-            <a href="auth/logout.php" class="button logout-btn">Sair</a>
-        </div>
-        <div class="action-buttons">
-            <a href="?clear=true" class="clear-btn button">Limpar Conversa</a>
-            <?php if ($isAdmin): ?>
-            <a href="templates/setup.php" class="settings-btn button">Configurações</a>
-            <a href="templates/dashboard.php" class="dashboard-btn button">Dashboard</a>
-            <?php endif; ?>
-        </div>
-    </div>
-    
-    <div class="chat-container" id="chat-container">
-        <?php
-        $conversation = $chatbot->getConversation();
-        foreach ($conversation as $index => $message) {
-            if ($index === 0 && $message['role'] === 'system') {
-                continue;
-            }
-            
-            $class = $message['role'] === 'user' ? 'user-message' : 'bot-message';
-            echo "<div class='message {$class}'>{$message['content']}</div>";
-        }
-        ?>
-    </div>
-    
-    <form method="post" action="" id="chat-form">
-        <div class="input-container">
-            <input type="text" id="user-input" name="user_message" placeholder="Digite sua mensagem aqui..." autocomplete="off" required>
-            <button type="submit">Enviar</button>
-        </div>
-    </form>
-
-    <script>
-        document.getElementById('chat-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const userInput = document.getElementById('user-input').value;
-            if (!userInput.trim()) return;
-
-            const chatContainer = document.getElementById('chat-container');
-            chatContainer.innerHTML += `<div class="message user-message">${userInput}</div>`;
-            
-            document.getElementById('user-input').value = '';
-            
-            chatContainer.innerHTML += `<div class="message bot-message" id="loading-message">Pensando...</div>`;
-            
-            const formData = new FormData();
-            formData.append('user_message', userInput);
-            
-            try {
-                const response = await fetch('process.php', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                document.getElementById('loading-message').remove();
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                
-                if (data.setup_required) {
-                    window.location.href = 'templates/setup.php';
-                    return;
-                }
-                
-                if (data.success) {
-                    chatContainer.innerHTML += `<div class="message bot-message">${data.response}</div>`;
-                } else {
-                    console.error('Error:', data.error);
-                    chatContainer.innerHTML += `<div class="message bot-message">Erro: ${data.message || 'Ocorreu um erro ao processar sua mensagem.'}</div>`;
-                }
-            } catch (error) {
-                const loadingMessage = document.getElementById('loading-message');
-                if (loadingMessage) loadingMessage.remove();
-                
-                console.error('Error:', error);
-                chatContainer.innerHTML += `<div class="message bot-message">Desculpe, ocorreu um erro ao processar sua solicitação. Verifique o console para mais detalhes.</div>`;
-            }
-            
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-        });
-    </script>
-</body>
-</html>
